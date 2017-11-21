@@ -98,9 +98,13 @@ public class MergeJob extends JobBase {
       Path newPath = new Path(options.getMergeNewPath());
 
       Configuration jobConf = job.getConfiguration();
-      FileSystem fs = FileSystem.get(jobConf);
+      FileSystem fs = oldPath.getFileSystem(jobConf);
+      LOG.debug("old path is :" + oldPath.toString());
+      LOG.debug("new path is :" + newPath.toString());
       oldPath = oldPath.makeQualified(fs);
       newPath = newPath.makeQualified(fs);
+      LOG.debug("old path is :" + oldPath.toString());
+      LOG.debug("new path is :" + newPath.toString());
 
       propagateOptionsToJob(job);
 
