@@ -101,7 +101,7 @@ public class AppendUtils {
     }
 
     // move files
-    
+
     for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
         LOG.debug(ste);
     }
@@ -174,13 +174,13 @@ public class AppendUtils {
 
     // where the data partitioning is currently at
     int dataPart = partitionStart;
-  
- 
+
+
     if (sourcefs.getScheme() != destfs.getScheme()) {
       for (FileStatus fileStatus : sourceFiles) {
         String        sourceFilename = fileStatus.getPath().getName();
         StringBuilder destFilename   = new StringBuilder();
-  
+
         if (fileStatus.isDir()) {    // move all subdirectories
           // pass target dir as initial dest to prevent nesting inside preexisting dir
           if (destfs.mkdirs(targetDir)) {
@@ -191,17 +191,17 @@ public class AppendUtils {
             try {
               // clear the builder in case this isn't the first iteration
               destFilename.setLength(0);
-  
+
               // name-nnnnn?
               destFilename
                 .append(sourceFilename)
                 .append("-")
                 .append(partFormat.format(dirNumber++));
-  
+
               destPath = new Path(targetDir, destFilename.toString());
               if (destfs.exists(destPath))
                 continue;
-  
+
               /*
                * There's still a race condition right here if an
                * identically-named directory is created concurrently.
@@ -213,7 +213,7 @@ public class AppendUtils {
               LOG.error("Caught IOException: " + e.getMessage());
               throw e;
             }
-  
+
             LOG.debug("Directory: " + sourceFilename + " renamed to: " + destPath.getName());
           }
         } else if (DATA_PART_PATTERN.matcher(sourceFilename).matches()) {    // move only matching top-level files
@@ -222,12 +222,12 @@ public class AppendUtils {
             //destfs.rename()
             // clear the builder in case this isn't the first iteration
             destFilename.setLength(0);
-  
+
             // name-nnnnn
             destFilename
               .append(getFilename(sourceFilename))
               .append(partFormat.format(dataPart++));
-  
+
             // .ext?
             String extension = getFileExtension(sourceFilename);
             if (extension != null)
@@ -237,7 +237,7 @@ public class AppendUtils {
               LOG.error("Caught IOException: " + e.getMessage());
               throw e;
             }
-  
+
           LOG.debug("Filename: " + sourceFilename + " repartitioned to: " + destFilename.toString());
         } else {
           // Generated Parquet files do not follow the pattern "part-m-([0-9]{5}).ext", so that these
@@ -245,7 +245,7 @@ public class AppendUtils {
           boolean fileMoved = false;
           if (sourceFilename.endsWith(".parquet")) {
             Path targetFilename = new Path(targetDir, sourceFilename.toString());
-            try { 
+            try {
               destfs.moveFromLocalFile(fileStatus.getPath(), targetFilename);
               fileMoved = true;
             } catch (IOException e) {
@@ -259,14 +259,14 @@ public class AppendUtils {
       }
     }
     else {
-  
- 
+
+
       /* loop through all top-level files and copy matching ones */
-  
+
       for (FileStatus fileStatus : sourceFiles) {
         String        sourceFilename = fileStatus.getPath().getName();
         StringBuilder destFilename   = new StringBuilder();
-  
+
         if (fileStatus.isDir()) {    // move all subdirectories
           // pass target dir as initial dest to prevent nesting inside preexisting dir
           if (destfs.rename(fileStatus.getPath(), targetDir)) {
@@ -277,44 +277,44 @@ public class AppendUtils {
             do {
               // clear the builder in case this isn't the first iteration
               destFilename.setLength(0);
-  
+
               // name-nnnnn?
               destFilename
                 .append(sourceFilename)
                 .append("-")
                 .append(partFormat.format(dirNumber++));
-  
+
               destPath = new Path(targetDir, destFilename.toString());
               if (destfs.exists(destPath))
                 continue;
-  
+
               /*
                * There's still a race condition right here if an
                * identically-named directory is created concurrently.
                * It can be avoided by creating a parent dir for all
                * migrated dirs, or by an intermediate rename.
                */
-  
+
             } while (!destfs.rename(fileStatus.getPath(), destPath));
-  
+
             LOG.debug("Directory: " + sourceFilename + " renamed to: " + destPath.getName());
           }
         } else if (DATA_PART_PATTERN.matcher(sourceFilename).matches()) {    // move only matching top-level files
           do {
             // clear the builder in case this isn't the first iteration
             destFilename.setLength(0);
-  
+
             // name-nnnnn
             destFilename
               .append(getFilename(sourceFilename))
               .append(partFormat.format(dataPart++));
-  
+
             // .ext?
             String extension = getFileExtension(sourceFilename);
             if (extension != null)
               destFilename.append(getFileExtension(sourceFilename));
           } while (!destfs.rename(fileStatus.getPath(), new Path(targetDir, destFilename.toString())));
-  
+
           LOG.debug("Filename: " + sourceFilename + " repartitioned to: " + destFilename.toString());
         } else {
           // Generated Parquet files do not follow the pattern "part-m-([0-9]{5}).ext", so that these

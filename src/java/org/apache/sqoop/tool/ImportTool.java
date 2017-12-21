@@ -1110,12 +1110,12 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
           + INCREMENT_TYPE_ARG + ". " + HELP_STR);
     }
 
-    /* if (options.getIncrementalMode() == SqoopOptions.IncrementalMode.DateLastModified
+    if (options.getIncrementalMode() == SqoopOptions.IncrementalMode.DateLastModified
         && options.getFileLayout() == SqoopOptions.FileLayout.AvroDataFile) {
       throw new InvalidOptionsException("--"
           + INCREMENT_TYPE_ARG + " lastmodified cannot be used in conjunction with --"
           + FMT_AVRODATAFILE_ARG + "." + HELP_STR);
-    } */
+    }
   }
 
   @Override

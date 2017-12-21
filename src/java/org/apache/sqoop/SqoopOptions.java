@@ -2114,7 +2114,7 @@ public class SqoopOptions implements Cloneable {
  *       */
   public String getIncrementalIntermediatePath() {
     return this.incrementalIntermediatePath;
-  } 
+  }
 
   /**
    * Set the tables to be excluded when doing all table import.
