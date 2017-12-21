@@ -219,8 +219,6 @@ public class ExportJobBase extends JobBase {
       return null;
     }
     Path inputPath = new Path(context.getOptions().getExportDir());
-    Configuration conf = options.getConf();
-    inputPath = inputPath.makeQualified(FileSystem.get(conf));
     return inputPath;
   }
 

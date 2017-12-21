@@ -187,6 +187,7 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
       }
       LOG.info("  --check-column " + options.getIncrementalTestColumn());
       LOG.info("  --last-value " + options.getIncrementalLastValue());
+      LOG.info("  --intermediate-path " + options.getIncrementalIntermediatePath());
       LOG.info("(Consider saving this with 'sqoop job --create')");
     }
   }
@@ -292,7 +293,9 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
       return true;
     }
 
-    FileSystem fs = FileSystem.get(options.getConf());
+    Path destDir = context.getDestination();
+    Path tablePath = getOutputPath(options, context.getTableName(), false);
+    FileSystem fs = tablePath.getFileSystem(options.getConf());
     SqoopOptions.IncrementalMode incrementalMode = options.getIncrementalMode();
     String nextIncrementalValue = null;
 
@@ -318,7 +321,7 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
       break;
     case DateLastModified:
       if (options.getMergeKeyCol() == null && !options.isAppendMode()
-          && fs.exists(getOutputPath(options, context.getTableName(), false))) {
+          && fs.exists(tablePath)) {
         throw new ImportException("--" + MERGE_KEY_ARG + " or " + "--" + APPEND_ARG
           + " is required when using --" + this.INCREMENT_TYPE_ARG
           + " lastmodified and the output directory exists.");
@@ -428,8 +431,9 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
    * Merge HDFS output directories
    */
   protected void lastModifiedMerge(SqoopOptions options, ImportJobContext context) throws IOException {
-    FileSystem fs = FileSystem.get(options.getConf());
-    if (context.getDestination() != null && fs.exists(context.getDestination())) {
+    Path destDir = getOutputPath(options, context.getTableName());
+    FileSystem fs = destDir.getFileSystem(options.getConf());
+    if (context.getDestination() != null) {
       Path userDestDir = getOutputPath(options, context.getTableName(), false);
       if (fs.exists(userDestDir)) {
         String tableClassName = null;
@@ -437,7 +441,6 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
           tableClassName =
               new TableClassName(options).getClassForTable(context.getTableName());
         }
-        Path destDir = getOutputPath(options, context.getTableName());
         options.setExistingJarName(context.getJarFile());
         options.setClassName(tableClassName);
         options.setMergeOldPath(userDestDir.toString());
@@ -523,8 +526,8 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
   private void deleteTargetDir(ImportJobContext context) throws IOException {
 
     SqoopOptions options = context.getOptions();
-    FileSystem fs = FileSystem.get(options.getConf());
     Path destDir = context.getDestination();
+    FileSystem fs = destDir.getFileSystem(options.getConf());
 
     if (fs.exists(destDir)) {
       fs.delete(destDir, true);
@@ -561,7 +564,7 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
       if(salt == null && options.getSqlQuery() != null) {
         salt = Integer.toHexString(options.getSqlQuery().hashCode());
       }
-      outputPath = AppendUtils.getTempAppendDir(salt);
+      outputPath = AppendUtils.getTempAppendDir(salt, options);
       LOG.debug("Using temporary folder: " + outputPath.getName());
     } else {
       // Try in this order: target-dir or warehouse-dir
@@ -780,6 +783,11 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
         .withDescription("Last imported value in the incremental check column")
         .withLongOpt(INCREMENT_LAST_VAL_ARG)
         .create());
+    incrementalOpts.addOption(OptionBuilder.withArgName("intermediate-path")
+        .hasArg()
+        .withDescription("intermediate path used for incremental imports")
+        .withLongOpt(INCREMENT_INTERMEDIATE_PATH_ARG)
+        .create());
 
     return incrementalOpts;
   }
@@ -855,6 +863,9 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
 
     if (in.hasOption(INCREMENT_LAST_VAL_ARG)) {
       out.setIncrementalLastValue(in.getOptionValue(INCREMENT_LAST_VAL_ARG));
+    }
+    if (in.hasOption(INCREMENT_INTERMEDIATE_PATH_ARG)) {
+      out.setIncrementalIntermediatePath(in.getOptionValue(INCREMENT_INTERMEDIATE_PATH_ARG));
     }
   }
 
@@ -1099,12 +1110,12 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
           + INCREMENT_TYPE_ARG + ". " + HELP_STR);
     }
 
-    if (options.getIncrementalMode() == SqoopOptions.IncrementalMode.DateLastModified
+    /* if (options.getIncrementalMode() == SqoopOptions.IncrementalMode.DateLastModified
         && options.getFileLayout() == SqoopOptions.FileLayout.AvroDataFile) {
       throw new InvalidOptionsException("--"
           + INCREMENT_TYPE_ARG + " lastmodified cannot be used in conjunction with --"
           + FMT_AVRODATAFILE_ARG + "." + HELP_STR);
-    }
+    } */
   }
 
   @Override
