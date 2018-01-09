@@ -217,6 +217,7 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
     } else {
       // Free form table based import
       sb.append("(");
+
       sb.append(options.getSqlQuery());
       sb.append(") sqoop_import_query_alias");
 
@@ -227,9 +228,13 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
     Statement s = null;
     ResultSet rs = null;
     try {
-      LOG.info("Maximal id query for free form incremental import: " + query);
+      // total temp hack, but wanna see if this will work. very specific to our queries
+      String[] fromPart = options.getSqlQuery().substring(options.getSqlQuery().indexOf("from")).split("\\s+");
+      String newQuery = "select updated_at from (select max(id) as id from " + fromPart[1] + " ) a join " + fromPart[1] + " b on a.id=b.id";
+      LOG.info("Maximal id query for free form incremental import: " + newQuery);
+
       s = conn.createStatement();
-      rs = s.executeQuery(query);
+      rs = s.executeQuery(newQuery);
       if (!rs.next()) {
         // This probably means the table is empty.
         LOG.warn("Unexpected: empty results for max value query?");
@@ -358,7 +363,8 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
         options.getIncrementalTestColumn());
     LOG.info("Incremental import based on column " + checkColName);
     if (null != prevEndpoint) {
-      if (prevEndpoint.equals(nextIncrementalValue)) {
+      LOG.info("Lower bound value: " + prevEndpoint + "\nUpper bound value: " + nextIncrementalValue);
+      if (prevEndpoint.compareTo(nextIncrementalValue) <= 0) {
         LOG.info("No new rows detected since last import.");
         return false;
       }
