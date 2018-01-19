@@ -350,6 +350,9 @@
       value="${name}/[conf]/[artifact]-[revision](-[classifier]).[ext]"/>
 
   <!--test related properties -->
+  <property name="sqoop.test.import.rootDir"
+            value="file:///home/hadoop/_sqoop/"/>
+
   <property name="sqoop.test.oracle.connectstring"
             value="jdbc:oracle:thin:@//localhost/xe"/>
 
