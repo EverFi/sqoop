@@ -40,7 +40,6 @@ public class FileUploader {
   public static void uploadFilesToDFS(String srcBasePath, String src,
     String destBasePath, String dest, Configuration conf) throws IOException {
 
-    FileSystem fs = FileSystem.get(conf);
     Path targetPath = null;
     Path srcPath = new Path(srcBasePath, src);
 
@@ -49,6 +48,7 @@ public class FileUploader {
     }
 
     targetPath = new Path(destBasePath, dest);
+    FileSystem fs = targetPath.getFileSystem(conf);
 
     if (!fs.exists(targetPath)) {
       fs.mkdirs(targetPath);
