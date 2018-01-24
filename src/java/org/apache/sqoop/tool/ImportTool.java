@@ -362,14 +362,17 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
     String checkColName = manager.escapeColName(
         options.getIncrementalTestColumn());
     LOG.info("Incremental import based on column " + checkColName);
-    if ((isDateTimeColumn(checkColumnType) && prevEndpoint.compareTo(nextIncrementalValue) >= 0)
-      || (!isDateTimeColumn(checkColumnType) && prevEndpoint.compareTo(nextIncrementalValue) <= 0)) {
-      LOG.info("Lower bound value: " + prevEndpoint + "\nUpper bound value: " + nextIncrementalValue);
-      if (prevEndpoint.compareTo(nextIncrementalValue) <= 0) {
-        LOG.info("No new rows detected since last import.");
-        return false;
-      }
-      LOG.info("Lower bound value: " + prevEndpoint);
+    LOG.info("Lower bound value: " + prevEndpoint);
+    LOG.info("Upper bound value: " + nextIncrementalValue);
+    LOG.info("is check column date? " + String.valueOf(isDateTimeColumn(checkColumnType)) + "\n");
+    LOG.info("prev to next compare: " + String.valueOf(prevEndpoint.compareTo(nextIncrementalValue)) + "\n");
+
+    if (prevEndpoint.compareTo(nextIncrementalValue) == 0) {
+      LOG.info("No new rows detected since last import.");
+      return false;
+    }
+
+    if (prevEndpoint.compareTo(nextIncrementalValue) < 0) {
       sb.append(checkColName);
       switch (incrementalMode) {
       case AppendRows:
