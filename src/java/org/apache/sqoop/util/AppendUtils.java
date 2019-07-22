@@ -21,6 +21,8 @@ package org.apache.sqoop.util;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.UUID;
+import java.util.Enumeration;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,7 +76,8 @@ public class AppendUtils {
 
     int nextPartition = 0;
 
-    if (!fs.exists(tempDir)) {
+    FileSystem tempfs = tempDir.getFileSystem(options.getConf());
+    if (!tempfs.exists(tempDir)) {
       // This occurs if there was no source (tmp) dir. This might happen
       // if the import was an HBase-target import, but the user specified
       // --append anyway. This is a warning, not an error.
@@ -95,7 +98,11 @@ public class AppendUtils {
     }
 
     // move files
-    moveFiles(fs, tempDir, userDestDir, nextPartition);
+
+    for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+        LOG.debug(ste);
+    }
+    moveFiles(tempfs, fs, tempDir, userDestDir, nextPartition);
 
     // delete temporary path
     LOG.debug("Deleting temporary folder " + tempDir.getName());
@@ -141,12 +148,12 @@ public class AppendUtils {
    * number of directories bears no relation to the file partition
    * numbering.
    */
-  private void moveFiles(FileSystem fs, Path sourceDir, Path targetDir,
+  private void moveFiles(FileSystem sourcefs, FileSystem destfs, Path sourceDir, Path targetDir,
       int partitionStart) throws IOException {
 
     /* list files in the source dir and check for errors */
 
-    FileStatus[] sourceFiles = fs.listStatus(sourceDir);
+    FileStatus[] sourceFiles = sourcefs.listStatus(sourceDir);
 
     if (null == sourceFiles) {
       // If we've already checked that the dir exists, and now it can't be

@@ -283,6 +283,10 @@ public class SqoopOptions implements Cloneable {
   @StoredAsProperty("incremental.last.value")
   private String incrementalLastValue;
 
+  // incremental intermediate path; useful to set directly for s3 use
+  @StoredAsProperty("incremental.intermediate.path")
+  private String incrementalIntermediatePath;
+
   // exclude these tables when importing all tables.
   @StoredAsProperty("import.all_tables.exclude")
   private String allTablesExclude;
@@ -2247,6 +2251,20 @@ public class SqoopOptions implements Cloneable {
    */
   public String getIncrementalLastValue() {
     return this.incrementalLastValue;
+  }
+
+ /**
+ *    * Set the intermediate path of the incremental import.
+ *       */
+  public void setIncrementalIntermediatePath (String path) {
+    this.incrementalIntermediatePath = path;
+  }
+
+  /**
+ *    * Get the intermediate path of the incremental import test column.
+ *       */
+  public String getIncrementalIntermediatePath() {
+    return this.incrementalIntermediatePath;
   }
 
   /**
