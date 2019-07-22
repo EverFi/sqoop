@@ -148,9 +148,8 @@ public class AppendUtils {
    * number of directories bears no relation to the file partition
    * numbering.
    */
-  private void moveFiles(FileSystem sourcefs, FileSystem destfs, Path sourceDir, Path targetDir,
+  private void moveFiles(FileSystem fs, Path sourceDir, Path targetDir,
       int partitionStart) throws IOException {
-
     /* list files in the source dir and check for errors */
 
     FileStatus[] sourceFiles = sourcefs.listStatus(sourceDir);

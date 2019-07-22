@@ -462,6 +462,7 @@ public class ImportTool extends com.cloudera.sqoop.tool.BaseSqoopTool {
           tableClassName =
               new TableClassName(options).getClassForTable(context.getTableName());
         }
+        Path destDir = getOutputPath(options, context.getTableName());
         options.setExistingJarName(context.getJarFile());
         options.setClassName(tableClassName);
         options.setMergeOldPath(userDestDir.toString());
