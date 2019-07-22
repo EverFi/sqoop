@@ -102,7 +102,7 @@ public class AppendUtils {
     for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
         LOG.debug(ste);
     }
-    moveFiles(tempfs, fs, tempDir, userDestDir, nextPartition);
+    moveFiles(fs, tempDir, userDestDir, nextPartition);
 
     // delete temporary path
     LOG.debug("Deleting temporary folder " + tempDir.getName());
@@ -152,7 +152,7 @@ public class AppendUtils {
       int partitionStart) throws IOException {
     /* list files in the source dir and check for errors */
 
-    FileStatus[] sourceFiles = sourcefs.listStatus(sourceDir);
+    FileStatus[] sourceFiles = fs.listStatus(sourceDir);
 
     if (null == sourceFiles) {
       // If we've already checked that the dir exists, and now it can't be
