@@ -102,7 +102,7 @@ public class AppendUtils {
     for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
         LOG.debug(ste);
     }
-    moveFiles(fs, tempDir, userDestDir, nextPartition);
+    moveFiles(tempfs, tempDir, userDestDir, nextPartition);
 
     // delete temporary path
     LOG.debug("Deleting temporary folder " + tempDir.getName());
